@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DermScan AI — Skin Triage Assistant</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>DermScan AI</h1>
+            <p class="subtitle">Dermatological Triage Assistant</p>
+        </header>
+
+        <div class="disclaimer-banner">
+            <strong>Important:</strong> This tool is for informational triage
+            purposes only and does not provide a medical diagnosis. Always
+            consult a qualified healthcare professional.
+        </div>
+
+        <main>
+            <section class="upload-section" id="uploadSection">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">&#128247;</div>
+                    <p>Drag and drop an image here, or click to select</p>
+                    <p class="upload-hint">Accepted: PNG, JPG, JPEG, BMP, TIFF (max 10MB)</p>
+                    <input type="file" id="fileInput" accept="image/*" hidden>
+                </div>
+                <div class="preview-container" id="previewContainer" hidden>
+                    <img id="imagePreview" alt="Uploaded skin image preview">
+                    <button class="btn btn-secondary" id="clearBtn">Clear</button>
+                </div>
+                <button class="btn btn-primary" id="analyzeBtn" disabled>Analyze Image</button>
+            </section>
+
+            <section class="loading-section" id="loadingSection" hidden>
+                <div class="spinner"></div>
+                <p>Analyzing image...</p>
+            </section>
+
+            <section class="results-section" id="resultsSection" hidden>
+                <h2>Triage Results</h2>
+
+                <div class="severity-card" id="severityCard">
+                    <div class="severity-score" id="severityScore"></div>
+                    <div class="severity-label" id="severityLabel"></div>
+                </div>
+
+                <div class="conditions-list" id="conditionsList"></div>
+
+                <div class="abcde-card" id="abcdeCard">
+                    <h3>ABCDE Assessment</h3>
+                    <div id="abcdeContent"></div>
+                </div>
+
+                <div class="next-steps-card">
+                    <h3>Recommended Next Steps</h3>
+                    <ul id="nextStepsList"></ul>
+                </div>
+
+                <div class="doctor-recommendation" id="doctorRec"></div>
+
+                <div class="disclaimer-box" id="disclaimer"></div>
+
+                <button class="btn btn-primary" id="newAnalysisBtn">New Analysis</button>
+            </section>
+        </main>
+
+        <footer>
+            <p>DermScan AI &mdash; For informational purposes only. Not a medical device.</p>
+        </footer>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
