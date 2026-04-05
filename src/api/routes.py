@@ -1,25 +1,17 @@
-"""Flask API routes for DermScan."""
+"""Flask app factory — registers blueprints and page routes."""
 
 import os
 
-from flask import (
-    Flask,
-    jsonify,
-    render_template,
-    request,
-)
+from flask import Flask, jsonify, render_template, send_from_directory
 
-from src.engine.triage import analyze
-from src.utils.image_processing import (
-    MAX_IMAGE_SIZE,
-    allowed_file,
-    extract_features,
-    load_image,
-)
+from src import config, db
+from src.api.analysis import analysis_bp
+from src.api.conditions import conditions_bp
+from src.api.expert import expert_bp
+from src.auth import auth_bp
 
 
 def create_app() -> Flask:
-    """Create and configure the Flask application."""
     app = Flask(
         __name__,
         template_folder=os.path.join(
@@ -29,47 +21,64 @@ def create_app() -> Flask:
             os.path.dirname(__file__), "..", "..", "static"
         ),
     )
-    app.config["MAX_CONTENT_LENGTH"] = MAX_IMAGE_SIZE
+    app.config["SECRET_KEY"] = config.SECRET_KEY
+    app.config["MAX_CONTENT_LENGTH"] = config.MAX_IMAGE_SIZE
 
-    @app.route("/")
+    db.init_app(app)
+
+    # Initialize schema on startup
+    try:
+        db.init_db()
+    except Exception as e:
+        app.logger.warning(f"DB init warning: {e}")
+
+    # API blueprints
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(analysis_bp)
+    app.register_blueprint(expert_bp)
+    app.register_blueprint(conditions_bp)
+
+    # Health
+    @app.get("/api/health")
+    def health():
+        return jsonify({
+            "status": "ok",
+            "service": "dermascan",
+            "claude_configured": bool(config.ANTHROPIC_API_KEY),
+        })
+
+    # Plans endpoint
+    @app.get("/api/plans")
+    def plans():
+        return jsonify({"plans": config.PLANS})
+
+    # Pages — all SPA-style, render the same shell
+    @app.get("/")
     def index():
         return render_template("index.html")
 
-    @app.route("/api/health")
-    def health():
-        return jsonify({"status": "ok", "service": "dermascan"})
+    @app.get("/login")
+    def login_page():
+        return render_template("index.html")
 
-    @app.route("/api/analyze", methods=["POST"])
-    def analyze_image():
-        if "image" not in request.files:
-            return jsonify({"error": "No image file provided"}), 400
+    @app.get("/signup")
+    def signup_page():
+        return render_template("index.html")
 
-        file = request.files["image"]
-        if file.filename == "":
-            return jsonify({"error": "No file selected"}), 400
+    @app.get("/dashboard")
+    def dashboard():
+        return render_template("index.html")
 
-        if not allowed_file(file.filename):
-            return jsonify({
-                "error": (
-                    "Invalid file type. Accepted formats: "
-                    "PNG, JPG, JPEG, BMP, TIFF"
-                )
-            }), 400
+    @app.get("/conditions")
+    def conditions_page():
+        return render_template("index.html")
 
-        try:
-            file_bytes = file.read()
-            if len(file_bytes) > MAX_IMAGE_SIZE:
-                return jsonify({"error": "File too large. Max 10MB."}), 400
+    @app.get("/experts")
+    def experts_page():
+        return render_template("index.html")
 
-            image = load_image(file_bytes)
-            features = extract_features(image)
-            result = analyze(features)
-
-            return jsonify(result.to_dict())
-
-        except Exception:
-            return jsonify({
-                "error": "Failed to process image. Please try another image."
-            }), 500
+    @app.get("/pricing")
+    def pricing_page():
+        return render_template("index.html")
 
     return app

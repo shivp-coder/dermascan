@@ -12,6 +12,9 @@ env/
 venv/
 uploads/
 *.log
+*.db
+*.sqlite*
 .pytest_cache/
 .coverage
 htmlcov/
+instance/
